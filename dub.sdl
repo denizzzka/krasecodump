@@ -1,0 +1,7 @@
+name "krasecodump"
+description "Дампает данные датчиков"
+authors "denizzz"
+copyright "Copyright © 2019, denizzz"
+license "proprietary"
+dependency "vibe-d" version="~>0.8.3"
+dependency "vibe-d-postgresql" version="~>3.0.0-rc.2"
