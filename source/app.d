@@ -1,4 +1,5 @@
 import krasecodump.grab;
+import krasecodump.pgdb;
 import std.stdio;
 import vibe.db.postgresql;
 
@@ -11,6 +12,26 @@ void main(string[] args)
 
     foreach(const ref o; obs)
     {
+        import std.algorithm.searching: maxElement;
+
         const data = o.obsId.requestKrasecoData;
+
+        // Добавляем метеоданные отдельно потому что они не отдаются в виде истории измерений
+        {
+            Measurement[] meteo;
+
+            if(!o.meteo.t.isNull) meteo ~= Measurement("t", "deg", o.meteo.t.get);
+            if(!o.meteo.ws.isNull) meteo ~= Measurement("ws", "м/с", o.meteo.ws.get);
+            if(!o.meteo.wd.isNull) meteo ~= Measurement("wd", "deg", o.meteo.wd.get);
+            if(!o.meteo.hum.isNull) meteo ~= Measurement("hum", "", o.meteo.hum.get);
+            if(!o.meteo.p.isNull) meteo ~= Measurement("p", "", o.meteo.p.get);
+
+            const meteoTime = data.maxElement!((a) => a.dateTime).dateTime;
+
+            foreach(ref m; meteo)
+                m.dateTime = meteoTime;
+
+            dbClient.upsertMeasurementsToDB(o.coords, meteo);
+        }
     }
 }

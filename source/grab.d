@@ -81,10 +81,10 @@ Observatory[] requestObservatories()
 struct Measurement
 {
     string name;
-    Nullable!double pdk;
     string unit;
     double value;
     SysTime dateTime;
+    Nullable!double pdk;
 }
 
 Measurement[] requestKrasecoData(short station)
