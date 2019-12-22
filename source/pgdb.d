@@ -4,7 +4,7 @@ import krasecodump.grab;
 import vibe.db.postgresql;
 import db.util;
 
-short upsertPlace(Connection conn, Coords coords)
+private short upsertPlace(Connection conn, Coords coords)
 {
     auto qp = statementWrapper(
         `INSERT INTO places (`,
@@ -22,7 +22,7 @@ short upsertPlace(Connection conn, Coords coords)
     return r[0][0].as!short;
 }
 
-void upsertMeasurement(Connection conn, short placeId, Measurement measurement)
+private void upsertMeasurement(Connection conn, short placeId, Measurement measurement)
 {
     auto qp = statementWrapper(
         `INSERT INTO measurements (`,
@@ -38,4 +38,22 @@ void upsertMeasurement(Connection conn, short placeId, Measurement measurement)
     );
 
     conn.execStatement(qp);
+}
+
+void upsertMeasurementsToDB(PostgresClient client, Coords coords, Measurement[] measurements)
+{
+    client.pickConnection(
+        (scope conn)
+        {
+            // для скорости, сохранность данных нам не особо важна здесь
+            conn.execStatement("SET synchronous_commit TO OFF");
+
+            const placeId = conn.upsertPlace(coords);
+
+            foreach(const ref m; measurements)
+            {
+                conn.upsertMeasurement(placeId, m);
+            }
+        }
+    );
 }
