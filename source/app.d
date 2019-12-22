@@ -1,9 +1,16 @@
 import krasecodump.grab;
 import std.stdio;
+import vibe.db.postgresql;
 
-void main()
+void main(string[] args)
 {
-    requestObservatories.writeln;
+    const postgresConnString = args[1];
+    auto dbClient = new PostgresClient(postgresConnString, 5);
 
-    3.requestKrasecoData;
+    auto obs = requestObservatories;
+
+    foreach(const ref o; obs)
+    {
+        const data = o.obsId.requestKrasecoData;
+    }
 }

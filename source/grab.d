@@ -33,13 +33,18 @@ struct Meteo
     Nullable!double p;
 }
 
+struct Coords
+{
+    double lat;
+    double lon;
+}
+
 struct Observatory
 {
     short cityId;
     short obsId;
     string name;
-    double lat;
-    double lon;
+    Coords coords;
     Meteo meteo;
 }
 
@@ -59,8 +64,8 @@ Observatory[] requestObservatories()
             o.cityId = cityId;
             o.obsId = currOb[`id`].get!short;
             o.name = currOb[`name`].get!string;
-            o.lat = currOb[`lat`].get!double;
-            o.lon = currOb[`lon`].get!double;
+            o.coords.lat = currOb[`lat`].get!double;
+            o.coords.lon = currOb[`lon`].get!double;
 
             const meteoJson = currOb[`meteo`];
 
@@ -79,7 +84,7 @@ struct Measurement
     Nullable!double pdk;
     string unit;
     double value;
-    DateTime dateTime;
+    SysTime dateTime;
 }
 
 Measurement[] requestKrasecoData(short station)
@@ -107,7 +112,10 @@ Measurement[] requestKrasecoData(short station)
             import std.datetime;
 
             string timeStr = item[`captured_at`].get!string;
-            mItem.dateTime = DateTime.fromISOExtString(timeStr);
+            mItem.dateTime = SysTime(
+                // Конвертация Красноярского времени в универсальное
+                DateTime.fromISOExtString(timeStr), PosixTimeZone.getTimeZone("+07")
+            );
 
             ret ~= mItem;
         }
