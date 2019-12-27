@@ -3,6 +3,7 @@ module krasecodump.pgdb;
 import krasecodump.grab;
 import vibe.db.postgresql;
 import db.util;
+import std.conv: to;
 
 private short upsertPlace(Connection conn, Coords coords)
 {
@@ -19,7 +20,7 @@ private short upsertPlace(Connection conn, Coords coords)
     auto r = conn.execStatement(qp);
     r.checkOneRowResult;
 
-    return r[0][0].as!short;
+    return r[0][0].as!int.to!short;
 }
 
 private void upsertMeasurement(Connection conn, short placeId, Measurement measurement)
@@ -40,7 +41,7 @@ private void upsertMeasurement(Connection conn, short placeId, Measurement measu
     conn.execStatement(qp);
 }
 
-void upsertMeasurementsToDB(PostgresClient client, Coords coords, Measurement[] measurements)
+void upsertMeasurementsToDB(PostgresClient client, in Coords coords, in Measurement[] measurements)
 {
     client.pickConnection(
         (scope conn)

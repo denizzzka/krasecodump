@@ -114,7 +114,7 @@ Measurement[] requestKrasecoData(short station)
             string timeStr = item[`captured_at`].get!string;
             mItem.dateTime = SysTime(
                 // Конвертация Красноярского времени в универсальное
-                DateTime.fromISOExtString(timeStr), PosixTimeZone.getTimeZone("+07")
+                DateTime.fromISOExtString(timeStr), PosixTimeZone.getTimeZone("Asia/Krasnoyarsk")
             );
 
             ret ~= mItem;

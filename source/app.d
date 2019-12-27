@@ -12,12 +12,13 @@ void main(string[] args)
 
     foreach(const ref o; obs)
     {
-        import std.algorithm.searching: maxElement;
-
-        const data = o.obsId.requestKrasecoData;
+        auto measurementsOfObservatory = o.obsId.requestKrasecoData;
 
         // Добавляем метеоданные отдельно потому что они не отдаются в виде истории измерений
+        if(measurementsOfObservatory.length)
         {
+            import std.algorithm.searching: maxElement;
+
             Measurement[] meteo;
 
             if(!o.meteo.t.isNull) meteo ~= Measurement("t", "deg", o.meteo.t.get);
@@ -26,12 +27,14 @@ void main(string[] args)
             if(!o.meteo.hum.isNull) meteo ~= Measurement("hum", "", o.meteo.hum.get);
             if(!o.meteo.p.isNull) meteo ~= Measurement("p", "", o.meteo.p.get);
 
-            const meteoTime = data.maxElement!((a) => a.dateTime).dateTime;
+            const meteoTime = measurementsOfObservatory.maxElement!((a) => a.dateTime).dateTime;
 
             foreach(ref m; meteo)
                 m.dateTime = meteoTime;
 
-            dbClient.upsertMeasurementsToDB(o.coords, meteo);
+            measurementsOfObservatory ~= meteo;
         }
+
+        dbClient.upsertMeasurementsToDB(o.coords, measurementsOfObservatory);
     }
 }
