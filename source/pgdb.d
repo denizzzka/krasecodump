@@ -6,12 +6,13 @@ import db.util;
 import std.conv: to;
 import std.typecons: Nullable;
 
-private int upsertPlace(Connection conn, Coords coords)
+private int upsertPlace(Connection conn, Coords coords, string name)
 {
     auto qp = statementWrapper(
         `INSERT INTO places (`,
             i("lat", coords.lat),
             i("lon", coords.lon),
+            i("name", name),
         `) VALUES(`, Dollars(), `) `~
         `ON CONFLICT (lat, lon) `~
         `DO NOTHING `~
@@ -61,7 +62,7 @@ private void upsertMeasurement(Connection conn, short placeId, in Measurement m)
     conn.execStatement(qp);
 }
 
-void upsertMeasurementsToDB(PostgresClient client, in Coords coords, in Measurement[] measurements)
+void upsertMeasurementsToDB(PostgresClient client, in Coords coords, string observatoryName, in Measurement[] measurements)
 {
     client.pickConnection(
         (scope conn)
@@ -69,7 +70,7 @@ void upsertMeasurementsToDB(PostgresClient client, in Coords coords, in Measurem
             // для скорости транзакций, сохранность данных нам не особо важна здесь
             conn.execStatement("SET synchronous_commit TO OFF");
 
-            const placeId = conn.upsertPlace(coords).to!short;
+            const placeId = conn.upsertPlace(coords, observatoryName).to!short;
 
             foreach(const ref m; measurements)
                 conn.upsertMeasurement(placeId, m);

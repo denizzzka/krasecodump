@@ -35,6 +35,6 @@ void main(string[] args)
             measurementsOfObservatory ~= meteo;
         }
 
-        dbClient.upsertMeasurementsToDB(o.coords, measurementsOfObservatory);
+        dbClient.upsertMeasurementsToDB(o.coords, o.name, measurementsOfObservatory);
     }
 }
