@@ -15,7 +15,7 @@ private int upsertPlace(Connection conn, Coords coords, string name)
             i("name", name),
         `) VALUES(`, Dollars(), `) `~
         `ON CONFLICT (lat, lon) `~
-        `DO NOTHING `~
+        `DO UPDATE SET lat = EXCLUDED.lat `~ // just for ensure what RETURNING always returns value
         `RETURNING id`
     );
 
@@ -34,7 +34,7 @@ private int upsertSubstance(Connection conn, string name, string unit, Nullable!
             i("pdk", pdk),
         `) VALUES(`, Dollars(), `) `~
         `ON CONFLICT (substance_name, unit, pdk) `~
-        `DO NOTHING `~
+        `DO UPDATE SET pdk = EXCLUDED.pdk `~ // just for ensure what RETURNING always returns value
         `RETURNING id`
     );
 
