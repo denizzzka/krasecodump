@@ -5,8 +5,42 @@ import vibe.db.postgresql;
 import db.util;
 import std.conv: to;
 import std.datetime: SysTime;
+import std.exception: enforce;
+import std.typecons: Nullable;
+
+private Nullable!int selectPlace(Connection conn, Coords coords, string name)
+{
+    auto qp = statementWrapper(
+        `SELECT place_id `,
+        `FROM places `,
+        `WHERE `, u("lat", coords.lat),
+        `AND `, u("lon", coords.lon),
+        `LIMIT 1`
+    );
+
+    auto r = conn.execStatement(qp);
+    enforce(r.length <= 1);
+
+    Nullable!int ret;
+
+    if(r.length == 1)
+        ret = r[0][0].as!int;
+
+    return ret;
+}
 
 private int upsertPlace(Connection conn, Coords coords, string name)
+{
+    auto selected = conn.selectPlace(coords, name);
+
+    if(!selected.isNull)
+        return selected.get;
+    else
+        return conn.upsertPlaceHurtsSequence(coords, name);
+}
+
+// При каждом вызове вызывает приращение sequence
+private int upsertPlaceHurtsSequence(Connection conn, Coords coords, string name)
 {
     auto qp = statementWrapper(
         `INSERT INTO places (`,
@@ -25,7 +59,40 @@ private int upsertPlace(Connection conn, Coords coords, string name)
     return r[0][0].as!int;
 }
 
+private Nullable!int selectSubstance(Connection conn, string name, string unit, double pdk)
+{
+    auto qp = statementWrapper(
+        `SELECT substance_id `,
+        `FROM substances `,
+        `WHERE `, u("substance_name", name),
+        `AND `, u("unit", unit),
+        `AND `, u("pdk", pdk),
+        `LIMIT 1`
+    );
+
+    auto r = conn.execStatement(qp);
+    enforce(r.length <= 1);
+
+    Nullable!int ret;
+
+    if(r.length == 1)
+        ret = r[0][0].as!int;
+
+    return ret;
+}
+
 private int upsertSubstance(Connection conn, string name, string unit, double pdk)
+{
+    auto selected = conn.selectSubstance(name, unit, pdk);
+
+    if(!selected.isNull)
+        return selected.get;
+    else
+        return conn.upsertSubstanceHurtsSequence(name, unit, pdk);
+}
+
+// При каждом вызове вызывает приращение sequence
+private int upsertSubstanceHurtsSequence(Connection conn, string name, string unit, double pdk)
 {
     auto qp = statementWrapper(
         `INSERT INTO substances (`,
