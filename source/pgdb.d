@@ -4,6 +4,7 @@ import krasecodump.grab;
 import vibe.db.postgresql;
 import db.util;
 import std.conv: to;
+import std.datetime: SysTime;
 
 private int upsertPlace(Connection conn, Coords coords, string name)
 {
@@ -12,7 +13,8 @@ private int upsertPlace(Connection conn, Coords coords, string name)
             i("lat", coords.lat),
             i("lon", coords.lon),
             i("name", name),
-        `) VALUES(`, Dollars(), `) `~
+            `, place_id`,
+        `) VALUES(`, Dollars(), `, (SELECT nextval('substances_id_seq')) ) `~
         `ON CONFLICT (lat, lon) `~
         `DO UPDATE SET lat = EXCLUDED.lat `~ // just for ensure what RETURNING always returns value
         `RETURNING place_id`
@@ -43,7 +45,7 @@ private int upsertSubstance(Connection conn, string name, string unit, double pd
     return r[0][0].as!int;
 }
 
-private void upsertMeasurement(Connection conn, short placeId, in Measurement m)
+private void upsertMeasurement(Connection conn, in SysTime time, short placeId, in Measurement m)
 {
     import std.exception: enforce;
 
@@ -64,6 +66,7 @@ private void upsertMeasurement(Connection conn, short placeId, in Measurement m)
             i("time", m.dateTime),
             i("substance_id", substanceId),
             i("value", m.value),
+            i("recorded_time", time),
         `) VALUES(`, Dollars(), `) `~
         `ON CONFLICT (place_id, time, substance_id, value) `~
         `DO NOTHING`
@@ -72,7 +75,7 @@ private void upsertMeasurement(Connection conn, short placeId, in Measurement m)
     conn.execStatement(qp);
 }
 
-void upsertMeasurementsToDB(PostgresClient client, in Coords coords, string observatoryName, in Measurement[] measurements)
+void upsertMeasurementsToDB(PostgresClient client, in SysTime time, in Coords coords, string observatoryName, in Measurement[] measurements)
 {
     client.pickConnection(
         (scope conn)
@@ -83,7 +86,7 @@ void upsertMeasurementsToDB(PostgresClient client, in Coords coords, string obse
             const placeId = conn.upsertPlace(coords, observatoryName).to!short;
 
             foreach(const ref m; measurements)
-                conn.upsertMeasurement(placeId, m);
+                conn.upsertMeasurement(time, placeId, m);
         }
     );
 }

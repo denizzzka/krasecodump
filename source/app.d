@@ -1,6 +1,7 @@
 import krasecodump.grab;
 import krasecodump.pgdb;
 import std.stdio;
+import std.datetime;
 import vibe.db.postgresql;
 
 void main(string[] args)
@@ -9,6 +10,7 @@ void main(string[] args)
     auto dbClient = new PostgresClient(postgresConnString, 5);
 
     auto obs = requestObservatories;
+    const currTime = Clock.currTime;
 
     foreach(const ref o; obs)
     {
@@ -35,6 +37,6 @@ void main(string[] args)
             measurementsOfObservatory ~= meteo;
         }
 
-        dbClient.upsertMeasurementsToDB(o.coords, o.name, measurementsOfObservatory);
+        dbClient.upsertMeasurementsToDB(currTime, o.coords, o.name, measurementsOfObservatory);
     }
 }
