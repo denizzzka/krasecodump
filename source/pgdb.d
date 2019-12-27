@@ -4,8 +4,9 @@ import krasecodump.grab;
 import vibe.db.postgresql;
 import db.util;
 import std.conv: to;
+import std.typecons: Nullable;
 
-private short upsertPlace(Connection conn, Coords coords)
+private int upsertPlace(Connection conn, Coords coords)
 {
     auto qp = statementWrapper(
         `INSERT INTO places (`,
@@ -20,21 +21,40 @@ private short upsertPlace(Connection conn, Coords coords)
     auto r = conn.execStatement(qp);
     r.checkOneRowResult;
 
-    return r[0][0].as!int.to!short;
+    return r[0][0].as!int;
 }
 
-private void upsertMeasurement(Connection conn, short placeId, Measurement measurement)
+private int upsertSubstance(Connection conn, string name, string unit, Nullable!double pdk)
 {
+    auto qp = statementWrapper(
+        `INSERT INTO substances (`,
+            i("substance_name", name),
+            i("unit", unit),
+            i("pdk", pdk),
+        `) VALUES(`, Dollars(), `) `~
+        `ON CONFLICT (substance_name, unit, pdk) `~
+        `DO NOTHING `~
+        `RETURNING id`
+    );
+
+    auto r = conn.execStatement(qp);
+    r.checkOneRowResult;
+
+    return r[0][0].as!int;
+}
+
+private void upsertMeasurement(Connection conn, short placeId, in Measurement m)
+{
+    const substanceId = conn.upsertSubstance(m.name, m.unit, m.pdk);
+
     auto qp = statementWrapper(
         `INSERT INTO measurements (`,
             i("place_id", placeId),
-            i("time", measurement.dateTime),
-            i("substance_name", measurement.name),
-            i("value", measurement.value),
-            i("pdk", measurement.pdk),
-            i("unit", measurement.unit),
+            i("time", m.dateTime),
+            i("substance_id", substanceId),
+            i("value", m.value),
         `) VALUES(`, Dollars(), `) `~
-        `ON CONFLICT (place_id, time, substance_name, value, pdk, unit) `~
+        `ON CONFLICT (place_id, time, substance_id, value) `~
         `DO NOTHING`
     );
 
@@ -46,15 +66,13 @@ void upsertMeasurementsToDB(PostgresClient client, in Coords coords, in Measurem
     client.pickConnection(
         (scope conn)
         {
-            // для скорости, сохранность данных нам не особо важна здесь
+            // для скорости транзакций, сохранность данных нам не особо важна здесь
             conn.execStatement("SET synchronous_commit TO OFF");
 
-            const placeId = conn.upsertPlace(coords);
+            const placeId = conn.upsertPlace(coords).to!short;
 
             foreach(const ref m; measurements)
-            {
                 conn.upsertMeasurement(placeId, m);
-            }
         }
     );
 }

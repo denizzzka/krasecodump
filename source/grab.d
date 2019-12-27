@@ -5,7 +5,7 @@ import vibe.core.log;
 import std.datetime;
 import std.exception;
 import std.conv: to;
-import std.typecons;
+import std.typecons: Nullable;
 
 auto callKrasecology(string uri)
 {
