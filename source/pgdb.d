@@ -4,7 +4,6 @@ import krasecodump.grab;
 import vibe.db.postgresql;
 import db.util;
 import std.conv: to;
-import std.typecons: Nullable;
 
 private int upsertPlace(Connection conn, Coords coords, string name)
 {
@@ -16,7 +15,7 @@ private int upsertPlace(Connection conn, Coords coords, string name)
         `) VALUES(`, Dollars(), `) `~
         `ON CONFLICT (lat, lon) `~
         `DO UPDATE SET lat = EXCLUDED.lat `~ // just for ensure what RETURNING always returns value
-        `RETURNING id`
+        `RETURNING place_id`
     );
 
     auto r = conn.execStatement(qp);
@@ -25,7 +24,7 @@ private int upsertPlace(Connection conn, Coords coords, string name)
     return r[0][0].as!int;
 }
 
-private int upsertSubstance(Connection conn, string name, string unit, Nullable!double pdk)
+private int upsertSubstance(Connection conn, string name, string unit, double pdk)
 {
     auto qp = statementWrapper(
         `INSERT INTO substances (`,
@@ -35,7 +34,7 @@ private int upsertSubstance(Connection conn, string name, string unit, Nullable!
         `) VALUES(`, Dollars(), `) `~
         `ON CONFLICT (substance_name, unit, pdk) `~
         `DO UPDATE SET pdk = EXCLUDED.pdk `~ // just for ensure what RETURNING always returns value
-        `RETURNING id`
+        `RETURNING substance_id`
     );
 
     auto r = conn.execStatement(qp);
@@ -46,7 +45,18 @@ private int upsertSubstance(Connection conn, string name, string unit, Nullable!
 
 private void upsertMeasurement(Connection conn, short placeId, in Measurement m)
 {
-    const substanceId = conn.upsertSubstance(m.name, m.unit, m.pdk);
+    import std.exception: enforce;
+
+    enum PDK_ISNT_SET = -1; /// обозначает что ПДК не была установлена
+
+    // Проверка незанятости нашего внутреннего значения неустановленного ПДК
+    enforce(m.pdk.isNull || m.pdk.get != PDK_ISNT_SET);
+
+    const substanceId = conn.upsertSubstance(
+        m.name,
+        m.unit,
+        m.pdk.isNull ? PDK_ISNT_SET : m.pdk.get
+    );
 
     auto qp = statementWrapper(
         `INSERT INTO measurements (`,
