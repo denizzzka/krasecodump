@@ -46,7 +46,7 @@ private int upsertPlaceHurtsSequence(Connection conn, Coords coords, string name
         `INSERT INTO places (`,
             i("lat", coords.lat),
             i("lon", coords.lon),
-            i("name", name),
+            i("place_name", name),
         `) VALUES(`, Dollars(), `) `~
         `ON CONFLICT (lat, lon) `~
         `DO UPDATE SET lat = EXCLUDED.lat `~ // just for ensure what RETURNING always returns value
@@ -129,12 +129,12 @@ private void upsertMeasurement(Connection conn, in SysTime time, short placeId, 
     auto qp = statementWrapper(
         `INSERT INTO measurements (`,
             i("place_id", placeId),
-            i("time", m.dateTime),
+            i("measurement_time", m.dateTime),
             i("substance_id", substanceId),
             i("value", m.value),
             i("recorded_time", time),
         `) VALUES(`, Dollars(), `) `~
-        `ON CONFLICT (place_id, time, substance_id, value) `~
+        `ON CONFLICT (place_id, measurement_time, substance_id, value) `~
         `DO NOTHING`
     );
 
