@@ -13,8 +13,7 @@ private int upsertPlace(Connection conn, Coords coords, string name)
             i("lat", coords.lat),
             i("lon", coords.lon),
             i("name", name),
-            `, place_id`,
-        `) VALUES(`, Dollars(), `, (SELECT nextval('substances_id_seq')) ) `~
+        `) VALUES(`, Dollars(), `) `~
         `ON CONFLICT (lat, lon) `~
         `DO UPDATE SET lat = EXCLUDED.lat `~ // just for ensure what RETURNING always returns value
         `RETURNING place_id`
@@ -49,7 +48,7 @@ private void upsertMeasurement(Connection conn, in SysTime time, short placeId, 
 {
     import std.exception: enforce;
 
-    enum PDK_ISNT_SET = -1; /// обозначает что ПДК не была установлена
+    enum PDK_ISNT_SET = -100000; /// обозначает что ПДК не была установлена
 
     // Проверка незанятости нашего внутреннего значения неустановленного ПДК
     enforce(m.pdk.isNull || m.pdk.get != PDK_ISNT_SET);
