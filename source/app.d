@@ -23,11 +23,13 @@ void main(string[] args)
 
             Measurement[] meteo;
 
-            if(!o.meteo.t.isNull) meteo ~= Measurement("Температура воздуха__", "deg", o.meteo.t.get);
-            if(!o.meteo.ws.isNull) meteo ~= Measurement("Скорость ветра__", "м/с", o.meteo.ws.get);
-            if(!o.meteo.wd.isNull) meteo ~= Measurement("Направление ветра__", "deg", o.meteo.wd.get);
-            if(!o.meteo.hum.isNull) meteo ~= Measurement("Влажность воздуха__", "%", o.meteo.hum.get);
-            if(!o.meteo.p.isNull) meteo ~= Measurement("Атм. давление__", "мм.рт.ст.", o.meteo.p.get);
+            const dbrd = " (dashboard)";
+
+            if(!o.meteo.t.isNull) meteo ~= Measurement("Температура воздуха"~dbrd, "deg", o.meteo.t.get);
+            if(!o.meteo.ws.isNull) meteo ~= Measurement("Скорость ветра"~dbrd, "м/с", o.meteo.ws.get);
+            if(!o.meteo.wd.isNull) meteo ~= Measurement("Направление ветра"~dbrd, "deg", o.meteo.wd.get);
+            if(!o.meteo.hum.isNull) meteo ~= Measurement("Влажность воздуха"~dbrd, "%", o.meteo.hum.get);
+            if(!o.meteo.p.isNull) meteo ~= Measurement("Атм. давление"~dbrd, "мм.рт.ст.", o.meteo.p.get);
 
             const meteoTime = measurementsOfObservatory.maxElement!((a) => a.dateTime).dateTime;
 
