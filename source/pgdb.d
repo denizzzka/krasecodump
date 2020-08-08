@@ -2,7 +2,7 @@ module krasecodump.pgdb;
 
 import krasecodump.grab;
 import vibe.db.postgresql;
-import db.util;
+import db_helper.db.util;
 import std.conv: to;
 import std.datetime: SysTime;
 import std.exception: enforce;
