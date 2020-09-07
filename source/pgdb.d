@@ -11,6 +11,7 @@ import std.typecons: Nullable;
 private Nullable!int selectPlace(Connection conn, Coords coords, string name)
 {
     auto qp = wrapStatement(
+        conn,
         `SELECT place_id`,
         `FROM places`,
         `WHERE`, u("lat", coords.lat),
@@ -43,6 +44,7 @@ private int upsertPlace(Connection conn, Coords coords, string name)
 private int upsertPlaceHurtsSequence(Connection conn, Coords coords, string name)
 {
     auto qp = wrapStatement(
+        conn,
         `INSERT INTO places (`,
             i("lat", coords.lat),
             i("lon", coords.lon),
@@ -62,6 +64,7 @@ private int upsertPlaceHurtsSequence(Connection conn, Coords coords, string name
 private Nullable!int selectSubstance(Connection conn, string name, string unit, double pdk)
 {
     auto qp = wrapStatement(
+        conn,
         `SELECT substance_id`,
         `FROM substances`,
         `WHERE`, u("substance_name", name),
@@ -95,6 +98,7 @@ private int upsertSubstance(Connection conn, string name, string unit, double pd
 private int upsertSubstanceHurtsSequence(Connection conn, string name, string unit, double pdk)
 {
     auto qp = wrapStatement(
+        conn,
         `INSERT INTO substances (`,
             i("substance_name", name),
             i("unit", unit),
@@ -127,6 +131,7 @@ private void upsertMeasurement(Connection conn, in SysTime time, short placeId, 
     );
 
     auto qp = wrapStatement(
+        conn,
         `INSERT INTO measurements (`,
             i("place_id", placeId),
             i("measurement_time", m.dateTime),
