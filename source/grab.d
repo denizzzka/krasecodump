@@ -11,6 +11,9 @@ auto callKrasecology(string uri)
 {
     import vibe.http.client;
 
+    HTTPClientSettings settings = new HTTPClientSettings;
+    settings.connectTimeout = 30.seconds;
+
     const url = `http://mobile.krasecology.ru`~uri;
 
     return requestHTTP(url,
@@ -21,6 +24,7 @@ auto callKrasecology(string uri)
 
             assert(!rq.persistent);
         },
+        settings
     );
 }
 
