@@ -1,5 +1,5 @@
-Description / Описание:
-=======================
+Description / Описание
+======================
 
 Dumps eco-monitoring info from Krasnoyarsk officials
 
@@ -9,8 +9,14 @@ Dumps eco-monitoring info from Krasnoyarsk officials
 (http://www.krasecology.ru/)
 
 
-Сборка:
-======
+Captured data / Собранные данные
+================================
+
+From 2019-12-28 to 2021-05-20: https://drive.google.com/file/d/1m6OBCIJIWwlaVnk3ylUjRXiTxARlCrIg/view?usp=sharing
+
+
+Сборка утилиты
+==============
 
 Утилита написана на языке D (https://dlang.org/).
 Установите компилятор D и менеджер пакетов DUB, после чего запустите
